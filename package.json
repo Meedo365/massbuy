@@ -16,7 +16,7 @@
     "stream": "^0.0.2"
   },
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "server.js"
   },
   "name": "massbuy",
   "version": "1.0.0",
