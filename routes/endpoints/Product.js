@@ -87,7 +87,6 @@ let routes = (app) => {
     // get product according to categories
     app.get('/products-by-category', async (req, res) => {
         try {
-            
             let products = await Product.find({ status: "active", category_id: req.query.category }).sort({ createdAt: -1 })
                 .populate("user_id", "firstname lastname role")
                 .populate("category_id", "title")
