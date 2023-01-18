@@ -22,7 +22,7 @@ mongoose.connect(CONNECTION_STRING, {
 mongoose.connection.on('open', () => console.log('Mongo Running'));
 mongoose.connection.on('error', (err) => console.log(err)); app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors());
+app.use(cors());
 app.use(routes);
 app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname, 'public')));
