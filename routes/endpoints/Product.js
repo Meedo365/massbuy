@@ -74,7 +74,7 @@ let routes = (app) => {
                             user_id, category_id
                         };
                         let newProduct_ = new Product(newProduct);
-                        // await newProduct_.save()
+                        await newProduct_.save()
                         return res.status(200).json({ msg: "Product Successfully Created" })
                         // return res.status(200).json(newProduct_)
 
