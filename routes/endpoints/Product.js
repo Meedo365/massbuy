@@ -1,38 +1,53 @@
 const Product = require('../../models/product');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-// const Datauri = require('datauri')
-// const { uploader, cloudinaryConfig } = require("../../config/cloudinaryConfig");
-// const { uploader } = require('cloudinary');
 
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './uploads/')
+        cb(null, './uploads')
     },
     filename: function (req, file, cb) {
         cb(null, new Date().getMilliseconds() + file.originalname);
     }
 });
-
-
-// const storage = new CloudinaryStorage({
-//     cloudinary: cloudinary,
-//     params: {
-//         folder: './uploads/',
-//         format: async (req, file) => 'webp', // supports promises as well
-//         public_id: (req, file) => { new Date().getMilliseconds() + file.originalname },
-//     },
-// });
-
-// const storage = multer.memoryStorage();
+const fs = require('fs');
 
 const upload = multer({ storage: storage }).single('image');
-const path = require("path");
 
-const { auth, isLoggedIn } = require('../middlewares/loggedIn')
+// const { auth, isLoggedIn } = require('../middlewares/loggedIn');
 
+// cloudinary configuration
+cloudinary.config({
+    cloud_name: "dfv4cufzp",
+    api_key: 861174487596545,
+    api_secret: "6n_1lICquMhRN4YgAMzQlhuG6tY"
+});
+
+async function uploadToCloudinary(locaFilePath) {
+    // locaFilePath :
+    // path of image which was just uploaded to "uploads" folder
+
+    var mainFolderName = "massbuy"
+    // filePathOnCloudinary :
+    // path of image we want when it is uploded to cloudinary
+    var filePathOnCloudinary = mainFolderName + "/" + locaFilePath;
+    return cloudinary.uploader.upload(locaFilePath)
+        .then((result) => {
+            // Image has been successfully uploaded on cloudinary
+            // So we dont need local image file anymore
+            // Remove file from local uploads folder 
+            fs.unlinkSync(locaFilePath)
+            return {
+                message: "Success",
+                url: result.url
+            };
+        }).catch((error) => {
+            // Remove file from local uploads folder 
+            fs.unlinkSync(locaFilePath)
+            return { message: "Fail", };
+        });
+};
 
 let routes = (app) => {
     app.post('/product', async (req, res) => {
@@ -42,21 +57,9 @@ let routes = (app) => {
                 res.json({ msg: "File Missing " })
             } else {
                 if (req.file) {
-                    // const dUri = new Datauri();
-                    // const dataUri = req => dUri.format(path.extname(req.file.originalname).toString(), req.file.buffer);
-                    // const file = dataUri(req).content;
-                    // console.log(file)
-                    // console.log(req.file)
-                    // // uploader.upload(file).then((result) => {
-                    // //     console.log(result.url)
-                    // //     res.body.image = '/' + result.url
-                    // // })
-
-                    // uploader.upload('/' + req.file.path).then((result) => {
-                    //     console.log(result.url)
-                    //     res.body.image = '/' + result.url
-                    // })
-                    req.body.image = '/' + req.file.path;
+                    var locaFilePath = req.file.path
+                    var result = await uploadToCloudinary(locaFilePath);
+                    req.body.image = [result.url][0];
                     try {
                         const { itemName, price, image, details, spec, feature,
                             user_id, category_id } = req.body;
@@ -71,13 +74,13 @@ let routes = (app) => {
                             user_id, category_id
                         };
                         let newProduct_ = new Product(newProduct);
-                        await newProduct_.save()
+                        // await newProduct_.save()
                         return res.status(200).json({ msg: "Product Successfully Created" })
                         // return res.status(200).json(newProduct_)
 
                     }
                     catch (err) {
-                        return res.status(500).send('err');
+                        return res.status(500).send(err);
                     }
                 }
             }
