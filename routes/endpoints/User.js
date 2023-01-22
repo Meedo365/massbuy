@@ -189,7 +189,7 @@ let routes = (app) => {
             })
         }
         catch (err) {
-            res.status(500)..json({ msg: err });
+            res.status(500).json({ msg: err });
         }
     });
 
