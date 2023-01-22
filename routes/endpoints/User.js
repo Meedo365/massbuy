@@ -172,8 +172,9 @@ let routes = (app) => {
 
             const isMatch = await bcrypt.compare(password, user.password)
             if (!isMatch) return res.status(400).json({ msg: "Password is incorrect." })
-            let userr = await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
+            await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
             const access_token = createAccessToken({ id: user._id })
+            console.log(access_token)
 
 //             const refresh_token = createRefreshToken({ id: user._id })
 //             res.cookie('refreshtoken', refresh_token, {
@@ -184,8 +185,8 @@ let routes = (app) => {
 
             res.json({
                 msg: "Login successful!",
-                userID: userr._id,
-               access_token: access_token
+                userID: user._id,
+                access: access_token
             })
         }
         catch (err) {
