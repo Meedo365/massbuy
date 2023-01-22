@@ -166,7 +166,7 @@ let routes = (app) => {
 
     app.post("/login", async (req, res) => {
         try {
-            const { email, password, status } = req.body
+            const { email, password } = req.body
             const user = await User.findOne({ email })
             if (!user) return res.status(400).json({ msg: "This email does not exist." })
 
