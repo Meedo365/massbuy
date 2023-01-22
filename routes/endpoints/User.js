@@ -185,7 +185,7 @@ let routes = (app) => {
             res.json({
                 msg: "Login successful!",
                 userID: userr._id,
-                access_token
+               access_token: access_token
             })
         }
         catch (err) {
