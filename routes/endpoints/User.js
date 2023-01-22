@@ -175,12 +175,12 @@ let routes = (app) => {
             await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
             const access_token = createAccessToken({ id: user._id })
 
-            const refresh_token = createRefreshToken({ id: user._id })
-            res.cookie('refreshtoken', refresh_token, {
-                httpOnly: true,
-                path: '/user/refresh_token',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-            })
+//             const refresh_token = createRefreshToken({ id: user._id })
+//             res.cookie('refreshtoken', refresh_token, {
+//                 httpOnly: true,
+//                 path: '/user/refresh_token',
+//                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+//             })
 
             res.json({
                 msg: "Login successful!",
