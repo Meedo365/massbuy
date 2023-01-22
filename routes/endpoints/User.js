@@ -164,7 +164,7 @@ let routes = (app) => {
         }
     });
 
-    app.put("/login", async (req, res) => {
+    app.post("/login", async (req, res) => {
         try {
             const { email, password } = req.body
             const user = await User.findOne({ email })
@@ -189,7 +189,8 @@ let routes = (app) => {
             })
         }
         catch (err) {
-            res.status(500).send(err);
+            console.log(err,"here")
+            res.status(500).send(err).json(err);
         }
     });
 
