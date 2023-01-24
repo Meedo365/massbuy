@@ -139,7 +139,7 @@ let routes = (app) => {
     });
 
     // make a payment by card
-    app.post('/payment/user/:id', async (req, res) => {
+    app.post('/payment/card/user/:id', async (req, res) => {
         try {
             let package = await Package.findOne({ _id: req.params.id })
             let oldAmountPaid = Number(package.paid);
@@ -165,7 +165,7 @@ let routes = (app) => {
     });
 
     // make a payment by cash
-    app.post('/payment/user/:id', async (req, res) => {
+    app.post('/payment/cash/user/:id', async (req, res) => {
         try {
             let payment = new Payment(req.body);
             payment.status = "pending"
