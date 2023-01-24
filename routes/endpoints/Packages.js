@@ -71,14 +71,25 @@ let routes = (app) => {
             })
             let total = arr.reduce((a, b) => a + b, 0);
             let balance = packages.balance.split(",").join("")
-            let daily = balance / (duration * 31)
-            let weekly = balance / (duration * 4)
-            let monthly = balance / (duration)
+            let daily = balance / (duration * 31);
+            let weekly = balance / (duration * 4);
+            let monthly = balance / (duration);
+            let numPayment;
+            if (packages.numberOfExpectedPayments === 0 && packages.payment_frequency.toLowerCase() === "daily") {
+                numPayment = duration * 31
+            } else if (packages.numberOfExpectedPayments === 0 && packages.payment_frequency.toLowerCase() === "weekly") {
+                numPayment = duration * 4
+            } else if (packages.numberOfExpectedPayments === 0 && packages.payment_frequency.toLowerCase() === "monthly") {
+                numPayment = duration
+            } else {
+                numPayment = packages.numberOfExpectedPayments
+            }
             await Package.updateOne({ user_id: req.params.id }, {
                 total: total.toLocaleString(),
                 daily: Math.ceil(daily).toLocaleString(),
                 weekly: Math.ceil(weekly).toLocaleString(),
-                monthly: Math.ceil(monthly).toLocaleString()
+                monthly: Math.ceil(monthly).toLocaleString(),
+                numberOfExpectedPayments: numPayment
             },
                 { returnOriginal: false })
             let packagess = await Package.find({ user_id: req.params.id, status: "pending" })

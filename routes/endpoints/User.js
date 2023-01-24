@@ -1,3 +1,4 @@
+require('dotenv').config();
 const User = require("../../models/user");
 const multer = require('multer');
 const bcrypt = require('bcrypt');
@@ -173,24 +174,23 @@ let routes = (app) => {
             const isMatch = await bcrypt.compare(password, user.password)
             if (!isMatch) return res.status(400).json({ msg: "Password is incorrect." })
             await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
-//             const access_token = createAccessToken({ id: user._id })
+            // const token = createAccessToken({ id: user._id })
 
-//             const refresh_token = createRefreshToken({ id: user._id })
-//             res.cookie('refreshtoken', refresh_token, {
-//                 httpOnly: true,
-//                 path: '/user/refresh_token',
-//                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-//             })
+            // const refresh_token = createRefreshToken({ id: user._id })
+            // res.cookie('refreshtoken', refresh_token, {
+            //     httpOnly: true,
+            //     path: '/user/refresh_token',
+            //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            // })
 
             res.json({
                 msg: "Login successful!",
                 userID: user._id,
-//                 access: access_token
+                // access_token: token
             })
         }
         catch (err) {
-            console.log(err,"here")
-            res.status(500).send(err).json(err);
+            res.status(500).send(err);
         }
     });
 

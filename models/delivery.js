@@ -5,8 +5,19 @@ const DeliverySchema = new mongoose.Schema({
     user_id: {
         type: mongoose.Types.ObjectId,
         ref: "users"
+    },
+    status: {
+        type: String,
+        default: "default"
     }
 }, {
+    toJSON: {
+        transform(doc, ret) {
+            delete ret.__v;
+            delete ret.createdAt;
+            delete ret.updatedAt;
+        },
+    },
     timestamps: true
 });
 
