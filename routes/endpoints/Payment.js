@@ -117,11 +117,15 @@ let routes = (app) => {
     app.put('/approve/payment/:id', async (req, res) => {
         try {
             let payment = await Payment.updateOne({ _id: req.params.id }, { status: "confirmed" }, { returnOriginal: false });
-            let package = await Package.find({ _id: payment.package_id })
+            let package = await Package.find({ _id: payment.package_id });
+            let balance = Number(package.balance) - Number(package.paid);
             let oldAmount = Number(package.paid);
             let amount = Number(payment.amount)
             let updatedAmount = oldAmount + amount;
-            await Package.updateOne({ _id: package.package_id }, { status: "order", paid: Number(updatedAmount.toLocaleString()) }, { returnOriginal: false });
+            await Package.updateOne({ _id: package.package_id }, {
+                status: "order", balance: Number(balance).toLocaleString(),
+                duration: duration - 1, paid: Number(updatedAmount.toLocaleString())
+            }, { returnOriginal: false });
             return res.json(payment)
         }
         catch (err) {
@@ -135,10 +139,11 @@ let routes = (app) => {
         try {
             let package = await Package.find({ _id: req.params.id })
             let oldAmount = Number(package.paid);
+            let balance = Number(package.balance) - Number(package.paid);
             let { amount, user_id, package_id } = req.body;
             let updatedAmount = oldAmount + amount;
             let payment = new Payment({ amount: updatedAmount, user_id: user_id, package_id: package_id });
-            await Package.updateOne({ _id: req.params.id }, { status: "order", paid: Number(updatedAmount.toLocaleString()) }, { returnOriginal: false });
+            await Package.updateOne({ _id: req.params.id }, { status: "order", duration: duration - 1, balance: Number(balance).toLocaleString(), paid: Number(updatedAmount.toLocaleString()) }, { returnOriginal: false });
             await payment.save()
             return res.json(payment)
         }
