@@ -53,7 +53,8 @@ let routes = (app) => {
     app.post('/product', async (req, res) => {
         upload(req, res, async (err) => {
             if (err) {
-                console.log(err)
+//                 console.log(err)
+                console.log(req.file)
                 res.json({ msg: "File Missing " })
             } else {
                 if (req.file) {
