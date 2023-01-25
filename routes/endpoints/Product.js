@@ -54,7 +54,7 @@ let routes = (app) => {
         upload(req, res, async (err) => {
             if (err) {
 //                 console.log(err)
-                console.log(req.file)
+                console.log(req)
                 res.json({ msg: "File Missing " })
             } else {
                 if (req.file) {
