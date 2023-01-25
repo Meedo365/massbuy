@@ -26,9 +26,9 @@ app.use(cors());
 app.use(routes);
 app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname, 'public')));
-// app.use(bodyparser.urlencoded({ limit: '50mb', extended: false }));
+app.use(bodyparser.urlencoded({ limit: '50mb', extended: false }));
 app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({ extended: true }));
+// app.use(bodyparser.urlencoded({ extended: true }));
 app.use('*', cloudinaryConfig);
 
 app.get('/', (req, res) => {
