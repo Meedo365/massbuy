@@ -4,9 +4,9 @@ const PackageSchema = new mongoose.Schema({
     status: { type: String, default: "native" },
     package_title: { type: String },
     duration: { type: Number, minValue: 1, maxValue: 12 },
-    package_category: {
+    category: {
         type: mongoose.Types.ObjectId,
-        ref: "package-categories"
+        ref: "categories"
     },
     product_id: [{
         item: {
@@ -53,9 +53,7 @@ const PackageSchema = new mongoose.Schema({
     toJSON: {
         transform(doc, ret) {
             delete ret.__v;
-            delete ret.createdAt;
             delete ret.updatedAt;
-            delete ret.password;
         },
     },
     timestamps: true
