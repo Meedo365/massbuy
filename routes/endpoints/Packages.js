@@ -5,6 +5,10 @@ const User = require("../../models/user");
 let routes = (app) => {
     app.post('/package', async (req, res) => {
         try {
+            let { product_id } = req.body;
+            if (product_id.length < 2) {
+                return res.status(400).send("Add Two or More Products")
+            }
             let package = new Package(req.body);
             await package.save()
             res.json(package)
@@ -35,7 +39,8 @@ let routes = (app) => {
         try {
             let packages = await Package.find().sort({ createdAt: -1 })
                 .populate("product_id.item")
-                .populate("package_category")
+                // .populate("package_category")
+                // .populate("categories")
                 .populate("user_id", "firstname lastname role")
             res.json(packages)
         }
@@ -160,7 +165,7 @@ let routes = (app) => {
 
     app.delete('/package/:id', async (req, res) => {
         try {
-            await Package.deleteOne()
+            await Package.deleteOne({ _id: req.params.id })
             res.json({ msg: "Package Deleted" })
         }
         catch (err) {
