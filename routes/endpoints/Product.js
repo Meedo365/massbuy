@@ -92,7 +92,6 @@ let routes = (app) => {
     // });
 
     app.post('/product', async (req, res) => {
-        console.log(req.body)
         try {
             let product = new Product(req.body);
             await product.save()
@@ -106,7 +105,6 @@ let routes = (app) => {
     // get product according to categories
     app.get('/products-by-category', async (req, res) => {
         try {
-            console.log(req.query.category)
             let products = await Product.find({ status: "active", category_id: req.query.category }).sort({ createdAt: -1 })
                 .populate("user_id", "firstname lastname role")
                 .populate("category_id", "title")
@@ -151,6 +149,19 @@ let routes = (app) => {
         }
         catch (err) {
             res.status(500).send(err)
+        }
+    });
+
+    app.put('/product/:id', async (req, res) => {
+        try {
+            let update = req.body;
+            let product = await Product.updateOne({ _id: req.params.id }, update, { returnOriginal: false })
+                .populate("user_id", "firstname lastname")
+            return res.json(product)
+        }
+        catch (err) {
+            res.status(500).send(err)
+            throw err
         }
     });
 
