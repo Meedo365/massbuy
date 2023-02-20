@@ -141,6 +141,22 @@ let routes = (app) => {
         }
     });
 
+    // get 4 products for home page
+    app.get('/product-4', async (req, res) => {
+        let arr = [];
+        try {
+            let product = await Product.find().sort({ createdAt: -1 }).limit(1)
+            let products = await Product.find().sort({ price: -1 }).limit(1)
+                .populate("user_id", "firstname lastname role")
+                .populate("category_id", "title")
+            arr.push(product[0], products[0])
+            res.json(arr)
+        }
+        catch (err) {
+            res.status(500).send(err)
+        }
+    });
+
     app.get('/product/:id', async (req, res) => {
         try {
             let products = await Product.findOne({ _id: req.params.id })
@@ -167,7 +183,7 @@ let routes = (app) => {
 
     app.delete('/product/:id', async (req, res) => {
         try {
-            await Product.deleteOne()
+            await Product.deleteOne({ _id: req.params.id })
             res.json({ msg: "Product Deleted" })
         }
         catch (err) {

@@ -35,11 +35,50 @@ let routes = (app) => {
                 firstname, lastname, email, password: passwordHash, phone, role
             }
             let user_ = new User(newUser);
+            user_.referalLink = "/register/referral/" + user_._id
             // const activation_token = createActivationToken(newUser)
 
             // const url = `${CLIENT_URL}/user/activate/${activation_token}`
 
             // sendMail(email, url, "Verify your email address")
+            await user_.save();
+            res.status(200).json({ msg: "Registration Successful, Please proceed to login" })
+
+        }
+        catch (err) {
+            console.log('error o')
+            return res.status(500).json({ msg: err.message });
+        }
+
+    });
+
+    app.post("/register/referral/:id", async (req, res) => {
+        try {
+            const { firstname, lastname, email, password, phone, role } = req.body;
+            if (!firstname || !lastname || !email || !password)
+                return res.status(400).json({ msg: "Please fill in all fields, one or more fileds are empty!" })
+
+            if (!validateEmail(email))
+                return res.status(400).json({ msg: "Please enter a valid email address!" })
+
+            const user = await User.findOne({ email })
+            if (user) return res.status(400).json({ msg: "This email already exists, please use another email address!" })
+
+            if (password.length < 8)
+                return res.status(400).json({ msg: "Password must be atleaast 8 characters long!" })
+
+
+            const referral = await User.findOne({ _id: req.params.id })
+
+            const passwordHash = await bcrypt.hash(password, 12)
+
+            const newUser = {
+                firstname, lastname, email, password: passwordHash, phone, role
+            }
+            let user_ = new User(newUser)
+            user_.referalLink = "/register/referral/" + user_._id
+            referral.referrals.push(user_._id)
+            await referral.save()
             await user_.save();
             res.status(200).json({ msg: "Registration Successful, Please proceed to login" })
 
@@ -124,9 +163,25 @@ let routes = (app) => {
         }
     });
 
+    // add address
+    app.put('/address/:id', async (req, res) => {
+        try {
+            let user = await User.findOne({ _id: req.params.id })
+            user.address.push(req.body.address)
+            let update = user;
+            await User.updateOne({ _id: req.params.id }, update, { returnOriginal: false });
+            return res.json(user)
+        }
+        catch (err) {
+            res.status(500).send(err)
+            throw err
+        }
+    });
+
     app.get("/user/:id", async (req, res) => {
         try {
-            let user = await User.findOne({ _id: req.params.id });
+            let user = await User.findOne({ _id: req.params.id })
+                .populate("referrals", "firstname lastname email")
             res.json(user)
         }
         catch (err) {
@@ -157,7 +212,7 @@ let routes = (app) => {
 
     app.delete('/user/:id', async (req, res) => {
         try {
-            await User.deleteOne()
+            await User.deleteOne({ _id: req.params.id })
             res.json({ msg: "User Deleted" })
         }
         catch (err) {
@@ -174,19 +229,19 @@ let routes = (app) => {
             const isMatch = await bcrypt.compare(password, user.password)
             if (!isMatch) return res.status(400).json({ msg: "Password is incorrect." })
             await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
-            // const token = createAccessToken({ id: user._id })
+            const token = createAccessToken({ id: user._id })
 
-            // const refresh_token = createRefreshToken({ id: user._id })
-            // res.cookie('refreshtoken', refresh_token, {
-            //     httpOnly: true,
-            //     path: '/user/refresh_token',
-            //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-            // })
+            const refresh_token = createRefreshToken({ id: user._id })
+            res.cookie('refreshtoken', refresh_token, {
+                httpOnly: true,
+                path: '/user/refresh_token',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            })
 
             res.json({
                 msg: "Login successful!",
                 userID: user._id,
-                // access_token: token
+                access_token: token
             })
         }
         catch (err) {

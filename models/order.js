@@ -5,14 +5,14 @@ const OrderSchema = new mongoose.Schema({
     deliveryDate: { type: Date, required: true },
     status: {
         type: String,
-        enum: ["Active", "Pending", "Completed"]
+        enum: ["Active", "Pending", "Completed", "Cancelled"]
     },
     frequency: { type: String, required: true },
-    delivery_id: {
+    deliveryId: {
         type: mongoose.Types.ObjectId,
         ref: "delivery"
     },
-    cart_id: {
+    cartId: {
         type: mongoose.Types.ObjectId,
         ref: "carts"
     }

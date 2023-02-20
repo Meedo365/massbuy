@@ -4,11 +4,8 @@ const DeliverySchema = new mongoose.Schema({
     address: { type: String, required: true },
     user_id: {
         type: mongoose.Types.ObjectId,
-        ref: "users"
-    },
-    status: {
-        type: String,
-        default: "default"
+        ref: "users",
+        required: true
     }
 }, {
     toJSON: {

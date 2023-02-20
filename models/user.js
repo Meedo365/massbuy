@@ -6,7 +6,11 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, unique: true, required: true, lowercase: true, trim: true },
     password: { type: String, minlength: 8, trim: true, required: true },
     phone: { type: String, minlength: 10, maxlength: 11 },
-    referral: { type: String },
+    referrals: [{
+        type: mongoose.Types.ObjectId,
+        ref: "users"
+    }],
+    referalLink: { type: String, default: "" },
     order: { type: Number, default: 0 },
     status: { type: String, default: "inactive" },
     role: {

@@ -6,6 +6,8 @@ require('./endpoints/Product')(app);
 require('./endpoints/Packages')(app);
 require('./endpoints/Category')(app);
 require('./endpoints/Payment')(app);
+require('./endpoints/Order')(app);
+require('./endpoints/Delivery')(app);
 require('./endpoints/PackageCategory')(app);
 
 module.exports = app;

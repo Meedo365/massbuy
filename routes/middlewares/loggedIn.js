@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 
 const isLoggedIn = (req, res, next) => {
-    console.log(req)
     if (!req.body.user_id) {
         res.json({ msg: "You have to Login !!!" })
     }
