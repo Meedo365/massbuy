@@ -3,6 +3,7 @@ const User = require("../../models/user");
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const { isAdmin, auth } = require("../middlewares/loggedIn");
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads/')
@@ -130,7 +131,7 @@ let routes = (app) => {
 
     });
 
-    app.get("/users", async (req, res) => {
+    app.get("/users", isAdmin, async (req, res) => {
         try {
             let users = await User.find({ role: "user" }).sort({ firstname: 1 })
             res.json(users)
@@ -140,7 +141,7 @@ let routes = (app) => {
         }
     });
 
-    app.get("/admins", async (req, res) => {
+    app.get("/admins", isAdmin, async (req, res) => {
         try {
             let users = await User.find({ role: "admin" }).sort({ firstname: 1 })
             res.json(users)
@@ -151,7 +152,7 @@ let routes = (app) => {
     });
 
     // to edit
-    app.put('/user/:id', async (req, res) => {
+    app.put('/user/:id', auth, async (req, res) => {
         try {
             let update = req.body;
             let user = await User.updateOne({ _id: req.params.id }, update, { returnOriginal: false });
@@ -164,7 +165,7 @@ let routes = (app) => {
     });
 
     // add address
-    app.put('/address/:id', async (req, res) => {
+    app.put('/address/:id', auth, async (req, res) => {
         try {
             let user = await User.findOne({ _id: req.params.id })
             user.address.push(req.body.address)
@@ -178,7 +179,8 @@ let routes = (app) => {
         }
     });
 
-    app.get("/user/:id", async (req, res) => {
+    // check user 
+    app.get("/user/:id", isAdmin, async (req, res) => {
         try {
             let user = await User.findOne({ _id: req.params.id })
                 .populate("referrals", "firstname lastname email")
@@ -189,8 +191,19 @@ let routes = (app) => {
         }
     });
 
+    app.get("/user", auth, async (req, res) => {
+        try {
+            let user = await User.findOne({ _id: req.user.id })
+                .populate("referrals", "firstname lastname email")
+            res.json(user)
+        }
+        catch (err) {
+            res.status(500).send(err)
+        }
+    });
+
     // update dp
-    app.put('/profilepic/:id', async (req, res) => {
+    app.put('/profilepic', auth, async (req, res) => {
         upload(req, res, async (err) => {
             if (err) {
                 console.log(err);
@@ -199,7 +212,7 @@ let routes = (app) => {
                     req.body.image = '/' + req.file.path;
                     try {
                         let update = req.body;
-                        let user = await User.findOneAndUpdate({ _id: req.params.id }, update, { returnOriginal: false });
+                        let user = await User.findOneAndUpdate({ _id: req.user.id }, update, { returnOriginal: false });
                         return res.json(user)
                     }
                     catch (err) {
@@ -210,7 +223,7 @@ let routes = (app) => {
         });
     });
 
-    app.delete('/user/:id', async (req, res) => {
+    app.delete('/user/:id', auth, async (req, res) => {
         try {
             await User.deleteOne({ _id: req.params.id })
             res.json({ msg: "User Deleted" })
@@ -240,7 +253,6 @@ let routes = (app) => {
 
             res.json({
                 msg: "Login successful!",
-                userID: user._id,
                 access_token: token
             })
         }

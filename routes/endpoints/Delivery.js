@@ -1,8 +1,9 @@
 const Delivery = require('../../models/delivery');
+const { auth } = require("../middlewares/loggedIn");
 
 let routes = (app) => {
 
-    app.post('/delivery', async (req, res) => {
+    app.post('/delivery', auth, async (req, res) => {
         try {
             let delivery = new Delivery(req.body);
             await delivery.save()
@@ -25,9 +26,9 @@ let routes = (app) => {
     });
 
     // get address of a particular user
-    app.get('/delivery/:id', async (req, res) => {
+    app.get('/delivery/:id', auth, async (req, res) => {
         try {
-            let delivery = await Delivery.find({ user_id: req.params.id })
+            let delivery = await Delivery.find({ user_id: req.user.id })
             res.json(delivery)
         }
         catch (err) {
@@ -35,7 +36,7 @@ let routes = (app) => {
         }
     });
 
-    app.delete('/delivery/:id', async (req, res) => {
+    app.delete('/delivery/:id', auth, async (req, res) => {
         try {
             await Delivery.deleteOne({ _id: req.params.id })
             res.json({ msg: "Delivery Deleted" })

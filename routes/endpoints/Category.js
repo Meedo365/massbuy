@@ -1,8 +1,9 @@
 const Category = require('../../models/category');
+const { isAdmin } = require("../middlewares/loggedIn");
 
 let routes = (app) => {
 
-    app.post('/category', async (req, res) => {
+    app.post('/category', isAdmin, async (req, res) => {
         try {
             let category = new Category(req.body);
             await category.save()
@@ -24,7 +25,7 @@ let routes = (app) => {
         }
     });
 
-    app.delete('/category/:id', async (req, res) => {
+    app.delete('/category/:id', isAdmin, async (req, res) => {
         try {
             await Category.deleteOne({ _id: req.params.id })
             res.json({ msg: "Category Deleted" })

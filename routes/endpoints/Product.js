@@ -1,7 +1,7 @@
 const Product = require('../../models/product');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-
+const { isAdmin } = require("../middlewares/loggedIn");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -15,9 +15,6 @@ const fs = require('fs');
 
 const upload = multer({ storage: storage }).single('image');
 
-// const { auth, isLoggedIn } = require('../middlewares/loggedIn');
-
-// cloudinary configuration
 cloudinary.config({
     cloud_name: "dfv4cufzp",
     api_key: 861174487596545,
@@ -50,57 +47,57 @@ async function uploadToCloudinary(locaFilePath) {
 };
 
 let routes = (app) => {
-    // app.post('/product', async (req, res) => {
-    //     upload(req, res, async (err) => {
+    app.post('/product', isAdmin, async (req, res) => {
+        upload(req, res, async (err) => {
 
-    //         if (err) {
-    //             console.log(err)
-    //             return res.json({ msg: "File Missing " })
-    //         } else if (req.file === undefined) {
-    //             return res.status(500).json({ msg: "File Missing " })
-    //         } else {
-    //             if (req.file) {
-    //                 var locaFilePath = req.file.path
-    //                 var result = await uploadToCloudinary(locaFilePath);
-    //                 req.body.image = [result.url][0];
-    //                 try {
-    //                     const { itemName, price, image, details, spec, feature,
-    //                         user_id, category_id } = req.body;
-    //                     if (!user_id)
-    //                         return res.status(500).json({ msg: "Please Login In" })
-    //                     if (!itemName || !price)
-    //                         return res.status(500).json({ msg: "Please fill in Product Name and Price at least!" })
-    //                     if (!image)
-    //                         return res.status(500).json({ msg: "Please Upload Product Image" })
-    //                     const newProduct = {
-    //                         itemName, price: Number(price).toLocaleString(), image, details, spec, feature,
-    //                         user_id, category_id
-    //                     };
-    //                     let newProduct_ = new Product(newProduct);
-    //                     await newProduct_.save()
-    //                     return res.status(200).json({ msg: "Product Successfully Created" })
-    //                     // return res.status(200).json(newProduct_)
-
-    //                 }
-    //                 catch (err) {
-    //                     console.log('there')
-    //                     return res.status(500).send(err);
-    //                 }
-    //             }
-    //         }
-    //     });
-    // });
-
-    app.post('/product', async (req, res) => {
-        try {
-            let product = new Product(req.body);
-            await product.save()
-            res.json(product)
-        }
-        catch (err) {
-            res.status(500).send(err)
-        }
+            if (err) {
+                console.log(err)
+                return res.json({ msg: "File Missing " })
+            } else if (req.file === undefined) {
+                return res.status(500).json({ msg: "File Missing " })
+            } else {
+                if (req.file) {
+                    var locaFilePath = req.file.path
+                    var result = await uploadToCloudinary(locaFilePath);
+                    req.body.image = [result.url][0];
+                    try {
+                        const { itemName, price, image, details, spec, feature,
+                            user_id, category_id } = req.body;
+                        if (!req.user)
+                            return res.status(500).json({ msg: "Please Login In" })
+                        if (!itemName || !price)
+                            return res.status(500).json({ msg: "Please fill in Product Name and Price at least!" })
+                        if (!image)
+                            return res.status(500).json({ msg: "Please Upload Product Image" })
+                        const newProduct = {
+                            itemName, price: Number(price).toLocaleString(), image, details, spec, feature,
+                            user_id: req.user.id, category_id
+                        };
+                        let newProduct_ = new Product(newProduct);
+                        await newProduct_.save()
+                        return res.status(200).json({ msg: "Product Successfully Created" })
+                    }
+                    catch (err) {
+                        console.log('there')
+                        return res.status(500).send(err);
+                    }
+                }
+            }
+        });
     });
+
+    // app.post('/product', isAdmin, async (req, res) => {
+    //     console.log(req.body)
+    //     try {
+    //         console.log(req.body)
+    //         let product = new Product(req.body);
+    //         // await product.save()
+    //         res.json(product)
+    //     }
+    //     catch (err) {
+    //         res.status(500).send(err)
+    //     }
+    // });
 
     // get product according to categories
     app.get('/products-by-category', async (req, res) => {
@@ -168,7 +165,7 @@ let routes = (app) => {
         }
     });
 
-    app.put('/product/:id', async (req, res) => {
+    app.put('/product/:id', isAdmin, async (req, res) => {
         try {
             let update = req.body;
             let product = await Product.updateOne({ _id: req.params.id }, update, { returnOriginal: false })
@@ -181,7 +178,7 @@ let routes = (app) => {
         }
     });
 
-    app.delete('/product/:id', async (req, res) => {
+    app.delete('/product/:id', isAdmin, async (req, res) => {
         try {
             await Product.deleteOne({ _id: req.params.id })
             res.json({ msg: "Product Deleted" })

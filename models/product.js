@@ -10,7 +10,8 @@ const ProductSchema = new mongoose.Schema({
     status: { type: String, default: "active" },
     user_id: {
         type: mongoose.Types.ObjectId,
-        ref: "users"
+        ref: "users",
+        required: true
     },
     category_id: {
         type: mongoose.Types.ObjectId,
