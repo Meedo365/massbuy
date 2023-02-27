@@ -3,6 +3,7 @@ const User = require("../../models/user");
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+// const cookieparser = require('cookie-parser');
 const { isAdmin, auth } = require("../middlewares/loggedIn");
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -244,16 +245,23 @@ let routes = (app) => {
             await User.updateOne({ email }, { status: "active" }, { returnOriginal: false })
             const token = createAccessToken({ id: user._id })
 
-            const refresh_token = createRefreshToken({ id: user._id })
-            res.cookie('refreshtoken', refresh_token, {
+            const refreshToken = createRefreshToken({ id: user._id })
+            // res.cookie('refreshtoken', refreshToken, {
+            //     httpOnly: true,
+            //     path: '/user/refresh_token',
+            //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            // })
+            res.cookie('jwt', refreshToken, {
                 httpOnly: true,
-                path: '/user/refresh_token',
+                sameSite: 'None', secure: true,
+                // path: '/user/refresh_token',
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-            })
+            });
 
-            res.json({
+            return res.json({
                 msg: "Login successful!",
-                access_token: token
+                access_token: token,
+                refresh_token: refreshToken
             })
         }
         catch (err) {
@@ -284,7 +292,7 @@ function createAccessToken(payload) {
 };
 
 function createRefreshToken(payload) {
-    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '10m' })
+    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' })
 };
 
 module.exports = routes;

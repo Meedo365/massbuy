@@ -1,9 +1,10 @@
 const Package = require('../../models/packages');
 const { auth } = require("../middlewares/loggedIn");
 const User = require("../../models/user");
+const { isAdmin } = require("../middlewares/loggedIn");
 
 let routes = (app) => {
-    app.post('/package', async (req, res) => {
+    app.post('/package', isAdmin, async (req, res) => {
         try {
             let { product_id } = req.body;
             if (product_id.length < 2) {
@@ -18,14 +19,11 @@ let routes = (app) => {
         }
     });
 
-    app.post('/package/user', async (req, res) => {
+    app.post('/package/user', auth, async (req, res) => {
         try {
-            const { total } = req.body;
-            // const user = await User.findOne({ _id: user_id });
-            // if (!user) return res.status(400).json({ msg: "you must to login" })
             let package = new Package(req.body);
+            package.user_id = req.user.id
             package.status = "pending";
-            package.balance = Number(total).toLocaleString();
             await package.save()
             res.json(package)
         }
@@ -61,25 +59,29 @@ let routes = (app) => {
         }
     });
 
-    app.get('/package/user/:id', async (req, res) => {
+    app.get('/userpackage', auth, async (req, res) => {
         try {
             let arr = [];
             let duration;
-            let packages = await Package.find({ user_id: req.params.id })
+            let packages = await Package.findOne({ user_id: req.user.id })
+            console.log(packages)
                 .populate("product_id.item", "itemName price")
-            packages.map((e, i) => {
-                duration = e.duration
-                e.product_id.map((a, b) => {
-                    arr.push(+a.item.price.split(",").join(""))
-                    return arr.reduce((a, b) => a + b, 0)
-                })
+            // packages.map((e, i) => {
+            //     duration = e.duration
+            packages.product_id.map((a, b) => {
+                arr.push(+a.item.price.split(",").join(""))
+                return arr.reduce((a, b) => a + b, 0)
             })
+            // })
             let total = arr.reduce((a, b) => a + b, 0);
             let balance = packages.balance.split(",").join("")
             let daily = balance / (duration * 31);
             let weekly = balance / (duration * 4);
             let monthly = balance / (duration);
             let numPayment;
+            console.log(balance)
+            console.log(monthly)
+            // console.log()
             if (packages.numberOfExpectedPayments === 0 && packages.payment_frequency.toLowerCase() === "daily") {
                 numPayment = duration * 31
             } else if (packages.numberOfExpectedPayments === 0 && packages.payment_frequency.toLowerCase() === "weekly") {
@@ -89,7 +91,7 @@ let routes = (app) => {
             } else {
                 numPayment = packages.numberOfExpectedPayments
             }
-            await Package.updateOne({ user_id: req.params.id }, {
+            await Package.updateOne({ user_id: req.user.id }, {
                 total: total.toLocaleString(),
                 daily: Math.ceil(daily).toLocaleString(),
                 weekly: Math.ceil(weekly).toLocaleString(),
@@ -97,7 +99,7 @@ let routes = (app) => {
                 numberOfExpectedPayments: numPayment
             },
                 { returnOriginal: false })
-            let packagess = await Package.find({ user_id: req.params.id, status: "pending" })
+            let packagess = await Package.find({ user_id: req.user.id })
                 .populate("product_id.item", "itemName price")
             res.json(packagess)
         }

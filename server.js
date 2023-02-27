@@ -10,6 +10,7 @@ const CONNECTION_STRING = "mongodb+srv://meedoMontana:MontanaMongo01@myafricequi
 const path = require('path');
 const routes = require('./routes');
 const bodyparser = require('body-parser');
+const cookieparser = require('cookie-parser');
 const { cloudinaryConfig } = require("./config/cloudinaryConfig")
 
 mongoose.set("strictQuery", false);
@@ -24,6 +25,7 @@ mongoose.connection.on('error', (err) => console.log(err));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieparser());
 
 app.use(cors());
 app.use(routes);
