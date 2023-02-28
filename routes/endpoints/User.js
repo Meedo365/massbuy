@@ -246,28 +246,44 @@ let routes = (app) => {
             const token = createAccessToken({ id: user._id })
 
             const refreshToken = createRefreshToken({ id: user._id })
-            // res.cookie('refreshtoken', refreshToken, {
-            //     httpOnly: true,
-            //     path: '/user/refresh_token',
-            //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-            // })
-            res.cookie('jwt', refreshToken, {
+            res.cookie('massbuyjwt', refreshToken, {
                 httpOnly: true,
-                sameSite: 'None', secure: true,
-                // path: '/user/refresh_token',
+                // sameSite: 'None', 
+                secure: true,
+                path: '/refresh',
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                // maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
             });
 
             return res.json({
                 msg: "Login successful!",
-                access_token: token,
-                refresh_token: refreshToken
+                access_token: token
             })
         }
         catch (err) {
             res.status(500).send(err);
         }
     });
+
+    app.post('/refresh', (req, res) => {
+        console.log(req.cookies)
+        if (req.cookies?.massbuyjwt) {
+            const refreshToken = req.cookies.jwt;
+
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET,
+                (err, user) => {
+                    if (err) {
+                        return res.status(406).json({ message: 'Unauthorized' });
+                    }
+                    else {
+                        const accessToken = createAccessToken({ id: user.id })
+                        return res.json({ accessToken });
+                    }
+                })
+        } else {
+            return res.status(406).json({ message: 'Unauthorized' });
+        }
+    })
 
     app.post("/logout/:id", async (req, res) => {
         try {
